@@ -1,7 +1,3 @@
-# IFTO
-# Aluno: Rangerson Clemente
-#Turma: 3 Periodo, TADS
-
 CREATE DATABASE Concessionaria;
 # DROP DATABASE Concessionaria;
 USE Concessionaria;
