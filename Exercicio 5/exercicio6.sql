@@ -79,23 +79,28 @@ INSERT INTO voos VALUES  (1111,1,3,'TAP',2,3);
 
 
 -- 1.	Liste o local e o nome de todos os aeroportos de Portugal (local, nome).
+
 SELECT a.nome,a.LOCAL FROM aeroportos a
 WHERE a.pais = 'Portugal';
 
 -- 2.	Liste os nomes de todos os aviões da versão DC-10 (nome).
+
 SELECT v.nome FROM avioes v
 INNER JOIN modelos m ON v.codmodelo = m.codmodelo
 WHERE m.versao = 'DC-10';
 
 -- 3.	Liste para cada avião, a quantidade de motores necessários (nome_avião, num_motores).
+
 SELECT v.nome, m.nummotores FROM avioes v
 INNER JOIN modelos m ON v.codmodelo = m.codmodelo;
 
  -- 4.	Quantos voos com a duração de 2 ou 3 horas há no sistema (contagem) ?
+
 SELECT COUNT(duracao) AS 'Quantidade de voos de 2 e 3 horas de duracao' FROM voos
 WHERE duracao = 2 or duracao = 3;
   
  -- 5.	Liste todos os modelos de avião da série A3xx , isto é, em que a versão começa pelo texto A3 (versão).
+
 SELECT v.nome AS 'Nome do avião', m.versao AS 'Modelo do avião' FROM avioes v
 INNER JOIN modelos m ON v.codmodelo = m.codmodelo
 WHERE m.versao LIKE '%A3%';
@@ -104,42 +109,71 @@ WHERE m.versao LIKE '%A3%';
 SELECT v.codvoo, v.duracao FROM voos v
 ORDER BY v.duracao DESC;
 
--- 7.	Tendo em conta que não existe nenhum voo direto do aeroporto de código 1 (Porto) para o aeroporto de código 12 (Londres), liste todos as escalas possíveis (cód_voo1,cód_voo2, código_aeroporto_da_escala). Sugestão: Utilize os códigos dos aeroportos (1 e 12) na pesquisa.
+-- 7.	Tendo em conta que não existe nenhum voo direto do aeroporto de código 1 (Porto) para o aeroporto de código 12 (Londres), liste todos as escalas possíveis 
+-- (cód_voo1,cód_voo2, código_aeroporto_da_escala). Sugestão: Utilize os códigos dos aeroportos (1 e 12) na pesquisa.
+
+SELECT v0.codvoo AS 'Codigo de voo 1',v1.codvoo AS 'Codigo de voo 2',v0.paracodaerop AS 'Coidgo de aeroporto de escala'
+FROM voos v0
+INNER JOIN voos v1 ON v0.paracodaerop = v1.decodaerop
+WHERE v0.decodaerop = 1 AND v1.paracodaerop = 12;
 
 -- 8.	Quantos aeroportos há por país ordene a resposta por ordem decrescente (país, contagem)?
+
 SELECT a.pais, COUNT(a.pais) AS 'Numero de aeroportos' FROM aeroportos a
 GROUP BY a.pais;
 
  -- 9.	Liste ordenadamente todos os voos, respectivo local de origem e local de destino, ordenando pelo código de voo crescente (codvoo, de_local, para_local). Apresente as colunas como Código do Voo , Origem e Destino.
+
 SELECT v.codvoo AS 'Código do Voo',v.decodaerop AS 'Origem',v.paracodaerop AS 'Destino' FROM voos v
 ORDER BY v.codvoo;
 
-select *from avioes;
-select *from  modelos;
-select *from voos;
-select *from aeroportos;
-
 -- 10.	Liste os códigos dos voos de Porto para Lisboa (codvoo) ? Atenção: A pesquisa não se pode basear nos atuais códigos de aeroportos, ie. deve funcionar mesmo se os códigos de aeroportos mudarem.
+
+SET @Inicio = 'Porto';
+SET @Final = 'Lisboa';
+
 SELECT v.codvoo AS 'Código de voo' FROM voos v
-INNER JOIN aeroportos a ON v.decodaerop = a.codaerop && v.paracodaerop = a.codaerop;
+WHERE v.decodaerop = (SELECT codaerop FROM aeroportos WHERE LOCAL=@Inicio) 
+&& v.paracodaerop = (SELECT codaerop FROM aeroportos WHERE LOCAL=@Final);
 
 -- 11.	Conte o número de aeroportos por país (país, contagem); mostre apenas os países com mais de 2 aeroportos.
 
+SELECT a.pais AS 'Pais', COUNT(*) AS 'Contagem' FROM aeroportos a
+GROUP BY a.pais
+HAVING COUNT(*)  > 2;
 
  -- 12.	Qual o país, ou países, com mais aeroportos e com quantos aeroportos ? (país, contagem)
 
-
+SELECT pais AS 'País', COUNT(pais) AS 'País(ises) com mais aeroporto' FROM aeroportos
+GROUP BY pais
+HAVING MAX(COUNT(pais));
 
  -- 13.	Liste para cada voo, qual o nome do aeroporto de partida e de chegada (cod_voo, nome_aerop_part, nome_aerop_cheg); ordene a resposta alfabeticamente pelo nome do aeroporto de partida e depois pelo nome do aeroporto de chegada.
 
+SELECT v.codvoo, a0.nome, a1.nome FROM voos v
+INNER JOIN aeroportos a0 ON v.decodaerop = a0.codaerop
+INNER JOIN aeroportos a1 ON v.paracodaerop = a1.codaerop
+ORDER BY v.codvoo;
+-- ORDER BY a0.nome;
+-- ORDER BY a1.nome;
 
 -- 14.	Liste para cada modelo, quantos aviões realmente existem. Ordene a listagem tal forma que os modelos mais frequentes apareçam em último lugar (construtor, versão, contagem). Omita da listagem aviões com contagem nula.
 
+SELECT m.construtor, m.versao, COUNT(a.codmodelo) AS 'Contagem' FROM modelos m
+INNER JOIN avioes a ON m.codmodelo = a.codmodelo
+GROUP BY m.construtor,m.versao
+HAVING COUNT(a.codmodelo) > 0
+ORDER BY 'Contagem' ASC, m.construtor ASC, m.versao ASC;
 
 -- 15.	Liste para cada modelo, quantos aviões realmente existem. Ordene a listagem tal forma que os modelos mais frequentes apareçam em último lugar (construtor, versão, contagem). Inclua na listagem aviões com contagem nula.
 
+SELECT m.construtor, m.versao, COUNT(a.codmodelo) AS 'Contagem' FROM modelos m
+INNER JOIN avioes a ON m.codmodelo = a.codmodelo
+GROUP BY m.construtor,m.versao
+HAVING COUNT(a.codmodelo) >= 0
+ORDER BY 'Contagem' ASC, m.construtor ASC, m.versao ASC;
 
 select *from avioes;
-select *from  modelos;
+select *from modelos;
 select *from voos;
 select *from aeroportos;
